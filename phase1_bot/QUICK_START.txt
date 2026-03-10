@@ -1,0 +1,85 @@
+# ⚡ Phase 1 Quick Reference Card
+
+## 🎯 What's Ready (from old system)
+
+```
+✅ Telegram Bot Token: 8419110871:AAFkIVUXJvPMzvpgWbVqbeSCa8xGirIUyKo
+✅ Admin ID: 5667306202
+✅ Secret Key: escrow-bot-secret-key-2025
+✅ NOWPayments keys (saved for Phase 2)
+```
+
+**→ Already in `.env.example`**
+
+---
+
+## 📋 What You Need to Add (2 things only)
+
+### 1️⃣ MongoDB Connection
+```
+Get from: mongodb.com/cloud/atlas
+Create: Free M0 cluster
+Copy: Connection URI
+Add to .env as MONGO_URI=
+```
+
+### 2️⃣ Your Crypto Addresses
+```
+ESCROW_BTC_ADDRESS=    (coinbase/kraken wallet)
+ESCROW_USDT_ADDRESS=   (ethereum wallet)
+ESCRO_LTC_ADDRESS=     (litecoin wallet)
+```
+
+**At least ONE required, all three recommended**
+
+---
+
+## 🚀 3-Minute Setup
+
+```bash
+cd phase1_bot
+cp .env.example .env
+
+# Edit .env:
+# Add MONGO_URI (from MongoDB Atlas)
+# Add your wallet addresses
+
+# Run:
+pip install -r requirements.txt
+python bot/main.py
+```
+
+**Same bot token = bot starts immediately! ✅**
+
+---
+
+## 📱 Test Commands (After running)
+
+| Command | Result |
+|---------|--------|
+| `/start` | Shows main menu |
+| `/seller` | Register as seller |
+| `/buyer` | Register as buyer |
+| `/escrow` | Create deal |
+| `/mydeals` | List deals |
+
+---
+
+## 🌐 Deploy to Render  
+
+1. Git push to GitHub
+2. Create 2 Render services (auto-deploy)
+3. Add env vars (same as `.env`)
+4. **LIVE! 🎉**
+
+---
+
+## 📞 Support Files
+
+- `SETUP_GUIDE.md` - Detailed instructions
+- `MIGRATION_SUMMARY.md` - What changed from old system
+- `README.md` - Full documentation
+
+---
+
+**Ready? Start with Step 1 in SETUP_GUIDE.md →**
