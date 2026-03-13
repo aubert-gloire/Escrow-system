@@ -2,6 +2,7 @@
 MongoDB Connection and Management
 """
 
+import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from config.settings import settings
 from loguru import logger
@@ -16,20 +17,46 @@ class MongoDB:
     @classmethod
     async def connect_db(cls):
         """Connect to MongoDB."""
-        try:
-            cls.client = AsyncIOMotorClient(settings.mongo_uri)
-            cls.db = cls.client[settings.mongo_db_name]
-            
-            # Test connection
-            await cls.db.command("ping")
-            logger.info(f"✅ Connected to MongoDB: {settings.mongo_db_name}")
-            
-            # Create indexes
-            await cls._create_indexes()
-            
-        except Exception as e:
-            logger.error(f"❌ Failed to connect to MongoDB: {e}")
-            raise
+        if not settings.mongo_uri:
+            raise RuntimeError("MONGO_URI is not set")
+
+        max_attempts = 5
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                cls.client = AsyncIOMotorClient(
+                    settings.mongo_uri,
+                    serverSelectionTimeoutMS=10000,
+                    connectTimeoutMS=10000,
+                    socketTimeoutMS=20000,
+                    maxPoolSize=50,
+                    minPoolSize=1,
+                )
+                cls.db = cls.client[settings.mongo_db_name]
+
+                # Test connection
+                await cls.db.command("ping")
+                logger.info(f"✅ Connected to MongoDB: {settings.mongo_db_name}")
+
+                # Create indexes
+                await cls._create_indexes()
+                return
+
+            except Exception as e:
+                logger.warning(
+                    f"MongoDB connection attempt {attempt}/{max_attempts} failed: {e}"
+                )
+
+                if cls.client:
+                    cls.client.close()
+                    cls.client = None
+                    cls.db = None
+
+                if attempt == max_attempts:
+                    logger.error("❌ Failed to connect to MongoDB after retries")
+                    raise
+
+                await asyncio.sleep(min(2 * attempt, 10))
     
     @classmethod
     async def close_db(cls):

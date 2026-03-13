@@ -1,17 +1,17 @@
-# Phase 1 Setup Guide - Using Existing Credentials
+# Phase 1 Setup Guide
 
 ## ✅ What You Already Have
 
-These credentials are **already configured and working** from your old system:
+Configure these values in your own environment:
 
 | Item | Value | Status |
 |------|-------|--------|
-| Telegram Bot Token | `8419110871:AAFkIVUXJvPMzvpgWbVqbeSCa8xGirIUyKo` | ✅ Ready |
-| Admin Telegram ID | `5667306202` | ✅ Ready |
-| Secret Key | `escrow-bot-secret-key-2025` | ✅ Ready |
-| NOWPayments API | Available if needed for Phase 2 | ✅ Saved |
+| Telegram Bot Token | `your_bot_token_here` | Required |
+| Admin Telegram ID | `your_numeric_telegram_id` | Required |
+| Secret Key | `generate_a_long_random_secret` | Required |
+| NOWPayments API | Optional (Phase 2+) | Optional |
 
-These are **already in** the `.env.example` file!
+Use placeholder values in `.env.example` and store real values only in `.env` and Render env vars.
 
 ---
 
@@ -135,9 +135,9 @@ git push origin main
 
 ### Step 3: Add Environment Variables (in Render Dashboard)
 ```
-TELEGRAM_BOT_TOKEN=8419110871:AAFkIVUXJvPMzvpgWbVqbeSCa8xGirIUyKo
-ADMIN_USER_IDS=5667306202
-SECRET_KEY=escrow-bot-secret-key-2025
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+ADMIN_USER_IDS=your_numeric_telegram_id
+SECRET_KEY=generate_a_long_random_secret
 MONGO_URI=mongodb+srv://...
 ESCROW_BTC_ADDRESS=...
 ESCROW_USDT_ADDRESS=...

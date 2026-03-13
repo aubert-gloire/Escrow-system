@@ -3,13 +3,13 @@
 ## 🎯 What's Ready (from old system)
 
 ```
-✅ Telegram Bot Token: 8419110871:AAFkIVUXJvPMzvpgWbVqbeSCa8xGirIUyKo
-✅ Admin ID: 5667306202
-✅ Secret Key: escrow-bot-secret-key-2025
-✅ NOWPayments keys (saved for Phase 2)
+✅ Bot architecture and handlers
+✅ Render config (web + worker)
+✅ MongoDB integration
+✅ NOWPayments integration path (Phase 2)
 ```
 
-**→ Already in `.env.example`**
+**→ Fill real values in `.env` and Render environment variables**
 
 ---
 
@@ -27,7 +27,7 @@ Add to .env as MONGO_URI=
 ```
 ESCROW_BTC_ADDRESS=    (coinbase/kraken wallet)
 ESCROW_USDT_ADDRESS=   (ethereum wallet)
-ESCRO_LTC_ADDRESS=     (litecoin wallet)
+ESCROW_LTC_ADDRESS=    (litecoin wallet)
 ```
 
 **At least ONE required, all three recommended**
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 python bot/main.py
 ```
 
-**Same bot token = bot starts immediately! ✅**
+**Bot starts once required env vars are set. ✅**
 
 ---
 

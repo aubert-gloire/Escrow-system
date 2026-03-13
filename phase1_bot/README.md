@@ -19,7 +19,7 @@
 - **Bot**: aiogram 3.4.1 (Python async)
 - **Database**: MongoDB Atlas (free tier)
 - **Backend**: FastAPI + Uvicorn
-- **Hosting**: Render (free tier)
+- **Hosting**: Render (Starter plan recommended for 24/7 uptime)
 - **Payment Model**: Manual escrow deposits
 
 ## Project Structure
@@ -101,18 +101,31 @@ git push origin main
 
 ### 3. Environment Variables on Render
 ```
-TELEGRAM_BOT_TOKEN=your_token
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_API_ID=your_api_id
+TELEGRAM_API_HASH=your_api_hash
+TELEGRAM_SESSION_STRING=your_telethon_session_string
 MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/escrow_phase1
-ADMIN_USER_IDS=your_telegram_id
+MONGO_DB_NAME=escrow_phase1
+ADMIN_USER_IDS=your_numeric_telegram_id
 ESCROW_BTC_ADDRESS=your_btc_address
 ESCROW_USDT_ADDRESS=your_usdt_address
+ESCROW_ETH_ADDRESS=your_eth_address
 ESCROW_LTC_ADDRESS=your_ltc_address
-SECRET_KEY=random_secret_key
+SECRET_KEY=generate_a_long_random_secret
+SUPPORTED_CURRENCIES=["BTC","USDT","ETH","LTC"]
+PYTHONUNBUFFERED=1
+LOG_LEVEL=INFO
 ```
 
 ### 4. Deploy
 - Push to GitHub
 - Render auto-deploys both services
+
+### 5. Keep It 24/7 On Render
+- Use `Starter` (or higher) plan for both web and worker services.
+- Free services can sleep or be resource-constrained, which causes cold starts and lag.
+- Keep web health check on `/health` and monitor restart events in Render logs.
 
 ## Bot Commands
 

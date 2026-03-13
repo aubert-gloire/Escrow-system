@@ -3,17 +3,18 @@ services:
     name: escrow-api
     env: python
     rootDir: phase1_bot
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m uvicorn backend.app:app --host 0.0.0.0 --port $PORT
-    plan: free
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: python -m uvicorn backend.app:app --host 0.0.0.0 --port $PORT --workers 2
+    healthCheckPath: /health
+    plan: starter
 
   - type: background_worker
     name: escrow-bot
     env: python
     rootDir: phase1_bot
-    buildCommand: pip install -r requirements.txt
-    startCommand: python bot/main.py
-    plan: free
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: python -u bot/main.py
+    plan: starter
 
 envVars:
   - key: TELEGRAM_BOT_TOKEN
@@ -42,3 +43,7 @@ envVars:
     sync: false
   - key: SUPPORTED_CURRENCIES
     value: '["BTC","USDT","ETH","LTC"]'
+  - key: PYTHONUNBUFFERED
+    value: "1"
+  - key: LOG_LEVEL
+    value: INFO

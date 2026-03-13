@@ -7,8 +7,8 @@
 | Component | Old System | Phase 1 | Status |
 |-----------|-----------|---------|--------|
 | **Telegram Bot Token** | PostgreSQL/VPS | MongoDB/Render | ✅ Same token, working |
-| **Admin User ID** | 5667306202 | 5667306202 | ✅ Same admin |
-| **Secret Key** | escrow-bot-secret-key-2025 | escrow-bot-secret-key-2025 | ✅ Same key |
+| **Admin User ID** | configured via env | configured via env | ✅ Env-driven |
+| **Secret Key** | configured via env | configured via env | ✅ Env-driven |
 | **Bot Framework** | aiogram 3.4.1 | aiogram 3.4.1 | ✅ Same version |
 | **Logging** | loguru | loguru | ✅ Same logger |
 
@@ -122,15 +122,15 @@ NEW (Phase 1):
 
 ### ✅ Already Working (No Changes Needed)
 ```
-TELEGRAM_BOT_TOKEN=8419110871:AAFkIVUXJvPMzvpgWbVqbeSCa8xGirIUyKo
-ADMIN_USER_IDS=5667306202
-SECRET_KEY=escrow-bot-secret-key-2025
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+ADMIN_USER_IDS=your_numeric_telegram_id
+SECRET_KEY=generate_a_long_random_secret
 ```
 
 ### 📝 Still Available if Needed for Phase 2
 ```
-NOWPAYMENTS_API_KEY=Z29SRAT-55NMNAC-M1GMGBX-F9HFVVY
-NOWPAYMENTS_IPN_SECRET=DyXAsr3TAZuvHVeyLQfvpubcQZXdSX65
+NOWPAYMENTS_API_KEY=your_nowpayments_api_key
+NOWPAYMENTS_IPN_SECRET=your_nowpayments_ipn_secret
 NOWPAYMENTS_SANDBOX=false
 ```
 
