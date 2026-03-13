@@ -25,6 +25,7 @@ class EscrowBot:
         self.bot = None
         self.dp = None
         self.user_client = None
+        self.health_task = None
     
     async def setup(self):
         """Setup bot and database."""
@@ -95,15 +96,48 @@ class EscrowBot:
         """Run the bot."""
         try:
             logger.info("🤖 Starting bot polling...")
+            self.health_task = asyncio.create_task(self.health_monitor())
             await self.dp.start_polling(self.bot)
         except Exception as e:
             logger.error(f"❌ Bot error: {e}")
         finally:
             await self.shutdown()
+
+    async def health_monitor(self):
+        """Emit a periodic heartbeat and try to recover MongoDB connectivity."""
+        while True:
+            try:
+                await asyncio.sleep(settings.heartbeat_interval_seconds)
+
+                db = MongoDB.get_db()
+                await db.command("ping")
+
+                telethon_status = "connected" if self.user_client else "disabled"
+                logger.info(f"Heartbeat ok | db=connected | telethon={telethon_status}")
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:
+                logger.warning(f"Heartbeat detected degraded state: {e}")
+
+                try:
+                    await MongoDB.connect_db()
+                    if self.dp is not None:
+                        self.dp['db'] = MongoDB.get_db()
+                    logger.info("MongoDB connection recovered during heartbeat")
+                except Exception as reconnect_error:
+                    logger.error(
+                        f"MongoDB reconnect attempt failed during heartbeat: {reconnect_error}"
+                    )
     
     async def shutdown(self):
         """Shutdown bot and close connections."""
         logger.info("🛑 Shutting down...")
+        if self.health_task:
+            self.health_task.cancel()
+            try:
+                await self.health_task
+            except asyncio.CancelledError:
+                pass
         if self.bot:
             await self.bot.session.close()
         await UserClient.disconnect()

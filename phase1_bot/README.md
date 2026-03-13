@@ -116,6 +116,7 @@ SECRET_KEY=generate_a_long_random_secret
 SUPPORTED_CURRENCIES=["BTC","USDT","ETH","LTC"]
 PYTHONUNBUFFERED=1
 LOG_LEVEL=INFO
+HEARTBEAT_INTERVAL_SECONDS=300
 ```
 
 ### 4. Deploy
@@ -125,7 +126,8 @@ LOG_LEVEL=INFO
 ### 5. Keep It 24/7 On Render
 - Use `Starter` (or higher) plan for both web and worker services.
 - Free services can sleep or be resource-constrained, which causes cold starts and lag.
-- Keep web health check on `/health` and monitor restart events in Render logs.
+- Keep web health check on `/ready` and monitor restart events in Render logs.
+- The bot logs a heartbeat every `HEARTBEAT_INTERVAL_SECONDS` seconds and attempts MongoDB reconnection if the database drops.
 
 ## Bot Commands
 

@@ -45,6 +45,29 @@ async def health_check():
     }
 
 
+@app.get("/ready")
+async def readiness_check():
+    """Readiness check endpoint that verifies database connectivity."""
+    try:
+        db = MongoDB.get_db()
+        await db.command("ping")
+        return {
+            "status": "ready",
+            "service": "escrow-bot-backend",
+            "database": "connected"
+        }
+    except Exception as e:
+        logger.warning(f"Readiness check failed: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "not_ready",
+                "service": "escrow-bot-backend",
+                "database": "unavailable"
+            }
+        )
+
+
 # API dependency
 async def get_db() -> AsyncIOMotorDatabase:
     """Get database."""

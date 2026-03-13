@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
     log_file: str = "logs/escrow_bot.log"
+    heartbeat_interval_seconds: int = 300
     
     # App Settings
     max_deal_amount: float = 100000
