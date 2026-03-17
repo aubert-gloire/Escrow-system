@@ -87,7 +87,8 @@ async def _handle_create(
             f"✅ *Escrow Group Created!*\n\n"
             f"Group: *Escrow #{group_number}*\n"
             f"Transaction ID: `{deal_id}`\n\n"
-            f"Share the invite link below with the other party.\n"
+            f"📎 *Invite link* (tap to copy and share):\n"
+            f"`{group_link}`\n\n"
             f"Once both parties join:\n"
             f"  • Seller types `/seller <wallet address>`\n"
             f"  • Buyer types `/buyer <wallet address>`",

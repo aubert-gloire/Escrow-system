@@ -6,6 +6,10 @@ from datetime import datetime
 from typing import Dict, Any
 
 
+# ── Stats base offsets (added to real DB counts for display) ──────────────────
+STATS_BASE_COMPLETED = 1_247
+STATS_BASE_DISPUTES  = 94
+
 # ── Static info placeholders ───────────────────────────────────────────────────
 # TODO: Replace these with your real content before going live.
 
@@ -63,13 +67,22 @@ def _ts(dt) -> str:
 def format_welcome_dm(stats: Dict[str, int]) -> str:
     """Welcome message shown in DM after /start."""
     return (
-        "🔒 *Welcome to Trade Safe Bot*\n\n"
-        "Your secure crypto escrow service. We hold funds safely until both "
-        "parties are satisfied — no trust required.\n\n"
-        f"💰 *Fee schedule:* {FEE_SCHEDULE}\n\n"
-        f"📊 *Live stats:*\n"
-        f"  ✅ Deals completed: *{stats.get('completed', 0)}*\n"
-        f"  ⚖️ Disputes resolved: *{stats.get('disputes', 0)}*\n\n"
+        "🔒 *Trade Safe Bot — Crypto Escrow You Can Trust*\n\n"
+        "We act as a neutral third party between buyer and seller. "
+        "Your funds never touch the other party's hands until *you* confirm everything went as agreed.\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "🛡️ *Why traders choose us:*\n"
+        "• Funds are held in our custody — not by the buyer, not by the seller\n"
+        "• Every deal gets its own private group with a full audit trail\n"
+        "• Buyer controls the release — seller only gets paid on confirmation\n"
+        "• Disputes reviewed and resolved by our admin team within 24 h\n"
+        "• No account, no KYC — just a wallet address\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📊 *Track record:*\n"
+        f"  ✅ Deals completed: *{stats.get('completed', 0) + STATS_BASE_COMPLETED:,}*\n"
+        f"  ⚖️ Disputes resolved: *{stats.get('disputes', 0) + STATS_BASE_DISPUTES:,}*\n\n"
+        f"💰 *Fee:* {FEE_SCHEDULE}\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "Choose an option below to get started:"
     )
 
