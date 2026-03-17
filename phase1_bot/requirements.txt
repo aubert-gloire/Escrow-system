@@ -1,5 +1,5 @@
 # Telegram Bot Framework
-aiogram==3.4.1
+aiogram==3.13.1
 
 # Telegram User Client (for group creation)
 telethon==1.36.0
