@@ -13,7 +13,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import BotCommand
 from config.settings import settings, ensure_log_directory
 from database.mongo import MongoDB
-from bot.handlers import start, role, escrow, deposit, delivery, dispute, mydeals, admin
+from bot.handlers import start, create, group_roles, group_actions, admin
 from bot.utils.telegram_client import UserClient
 from loguru import logger
 
@@ -59,12 +59,9 @@ class EscrowBot:
             
             # Register handlers
             self.dp.include_router(start.router)
-            self.dp.include_router(role.router)
-            self.dp.include_router(escrow.router)
-            self.dp.include_router(deposit.router)
-            self.dp.include_router(delivery.router)
-            self.dp.include_router(dispute.router)
-            self.dp.include_router(mydeals.router)
+            self.dp.include_router(create.router)
+            self.dp.include_router(group_roles.router)
+            self.dp.include_router(group_actions.router)
             self.dp.include_router(admin.router)
             
             # Set bot commands
@@ -79,16 +76,16 @@ class EscrowBot:
     async def set_bot_commands(self):
         """Set bot commands."""
         commands = [
-            BotCommand(command="start", description="Start the bot"),
-            BotCommand(command="seller", description="Register as seller"),
-            BotCommand(command="buyer", description="Register as buyer"),
-            BotCommand(command="escrow", description="Create escrow deal (buyer)"),
-            BotCommand(command="join_deal", description="Join a deal as seller"),
-            BotCommand(command="confirm_deposit", description="Submit deposit TX hash"),
-            BotCommand(command="delivered", description="Mark deal as delivered (seller)"),
-            BotCommand(command="complete_deal", description="Confirm receipt & complete (buyer)"),
-            BotCommand(command="mydeals", description="View your deals"),
-            BotCommand(command="help", description="Show help"),
+            BotCommand(command="start", description="Show welcome menu"),
+            BotCommand(command="create", description="Create a new escrow group"),
+            BotCommand(command="seller", description="Declare seller role with wallet (in group)"),
+            BotCommand(command="buyer", description="Declare buyer role with wallet (in group)"),
+            BotCommand(command="reset", description="Reset role declarations (in group)"),
+            BotCommand(command="qr", description="Get QR code of escrow address (in group)"),
+            BotCommand(command="balance", description="Check deposit status (in group)"),
+            BotCommand(command="pay_seller", description="Release funds to seller (buyer only, in group)"),
+            BotCommand(command="refund_buyer", description="Refund buyer — admin only"),
+            BotCommand(command="contact", description="Contact arbitrator / raise dispute (in group)"),
         ]
         await self.bot.set_my_commands(commands)
     

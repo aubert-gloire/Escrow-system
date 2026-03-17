@@ -106,6 +106,65 @@ class GroupManager:
             return {"error": str(e), "success": False}
 
     @staticmethod
+    async def create_escrow_group(
+        user_client,
+        bot: Bot,
+        deal_id: str,
+        group_deal_number: str,
+    ) -> Dict[str, Any]:
+        """Create a supergroup named 'Escrow #XXXXX' for the new group-first flow."""
+        if user_client is None or not user_client.is_connected():
+            logger.warning(f"User client unavailable — skipping group creation for {deal_id}")
+            return {"error": "Telethon user client not configured", "success": False}
+
+        try:
+            group_title = f"Escrow #{group_deal_number}"
+
+            result = await user_client(CreateChannelRequest(
+                title=group_title,
+                about=f"Secure escrow transaction • ID: {deal_id}",
+                megagroup=True,
+            ))
+            group = result.chats[0]
+            group_chat_id = int(f"-100{group.id}")
+            logger.info(f"Created supergroup {group_chat_id} ('{group_title}') for deal {deal_id}")
+
+            bot_info = await bot.get_me()
+            if not bot_info.username:
+                raise ValueError("Bot has no username set — cannot add to group")
+            bot_entity = await user_client.get_entity(bot_info.username)
+
+            await user_client(InviteToChannelRequest(channel=group, users=[bot_entity]))
+            logger.info(f"Added bot @{bot_info.username} to group {group_chat_id}")
+
+            await user_client(EditAdminRequest(
+                channel=group,
+                user_id=bot_entity,
+                admin_rights=ChatAdminRights(
+                    change_info=True,
+                    post_messages=True,
+                    edit_messages=True,
+                    delete_messages=True,
+                    ban_users=True,
+                    invite_users=True,
+                    pin_messages=True,
+                    add_admins=False,
+                    manage_call=False,
+                ),
+                rank="Escrow Bot",
+            ))
+            logger.info(f"Promoted bot to admin in group {group_chat_id}")
+
+            invite = await user_client(ExportChatInviteRequest(peer=group))
+            invite_link = invite.link
+
+            return {"group_id": group_chat_id, "group_link": invite_link, "success": True}
+
+        except Exception as e:
+            logger.error(f"Error creating escrow group for deal {deal_id}: {e}")
+            return {"error": str(e), "success": False}
+
+    @staticmethod
     async def post_deal_info_to_group(
         bot: Bot,
         group_id: int,

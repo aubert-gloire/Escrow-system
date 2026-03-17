@@ -42,48 +42,55 @@ class UserModel:
 
 class DealModel:
     """Deal document model."""
-    
+
     @staticmethod
     def create(
         deal_id: str,
-        buyer_id: int,
-        buyer_username: str,
-        amount: float,
-        currency: str,
-        description: str,
-        escrow_address: str,
-        seller_id: Optional[int] = None,
-        seller_username: Optional[str] = None,
-        seller_address: Optional[str] = None
+        group_deal_number: str,
+        creator_id: int,
+        creator_username: str,
+        group_id: Optional[int] = None,
+        group_link: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Create new deal document."""
+        """Create a deal stub when the escrow group is first created.
+
+        Roles, addresses, and currency are filled in later when both
+        parties run /seller and /buyer inside the group.
+        """
         return {
             "deal_id": deal_id,
-            "buyer_id": buyer_id,
-            "buyer_username": buyer_username,
-            "seller_id": seller_id,
-            "seller_username": seller_username,
-            "amount": amount,
-            "currency": currency,
-            "description": description,
-            "escrow_address": escrow_address,
-            "seller_address": seller_address,
+            "group_deal_number": group_deal_number,
+            "creator_id": creator_id,
+            "creator_username": creator_username,
+            # Seller fields — populated by /seller <ADDRESS>
+            "seller_id": None,
+            "seller_username": None,
+            "seller_address": None,
+            # Buyer fields — populated by /buyer <ADDRESS>
+            "buyer_id": None,
+            "buyer_username": None,
+            "buyer_address": None,
+            # Currency & escrow address — set once both roles are declared
+            "currency": None,
+            "escrow_address": None,
+            # Deposit tracking — filled in by admin /verify_deposit
             "deposit_tx_hash": None,
-            "deposit_amount": None,
             "deposit_confirmations": 0,
             "deposit_confirmed": False,
             "deposit_recorded_at": None,
             "deposit_confirmed_at": None,
-            "status": "CREATED",  # CREATED → AWAITING_DEPOSIT → DEPOSITED → DELIVERED → COMPLETED
-            "delivery_confirmed_at": None,
-            "dispute_status": None,
+            # Resolution timestamps
+            "released_at": None,
+            "refunded_at": None,
+            # Dispute
             "dispute_reason": None,
             "dispute_initiated_by": None,
-            "dispute_resolved": False,
-            "dispute_winner": None,
-            "group_id": None,
-            "group_link": None,
-            "group_created_at": None,
+            # Status: SETUP → AWAITING_DEPOSIT → DEPOSITED → COMPLETED | REFUNDED | DISPUTED
+            "status": "SETUP",
+            # Group
+            "group_id": group_id,
+            "group_link": group_link,
+            "group_created_at": datetime.utcnow() if group_id else None,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }

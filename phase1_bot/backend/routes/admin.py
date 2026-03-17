@@ -4,6 +4,7 @@ Admin API Routes
 
 from fastapi import APIRouter, HTTPException, Depends, Header
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from pydantic import BaseModel
 from database.mongo import MongoDB
 from database.crud import DealCRUD
 from config.settings import settings
@@ -15,7 +16,6 @@ router = APIRouter()
 
 
 async def get_db() -> AsyncIOMotorDatabase:
-    """Get database."""
     return MongoDB.get_db()
 
 
@@ -27,23 +27,29 @@ def verify_admin_key(x_api_key: Optional[str] = Header(default=None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
+class VerifyDepositRequest(BaseModel):
+    tx_hash: str
+    confirmations: int = 1
+
+
 @router.post("/verify-deposit/{deal_id}")
 async def verify_deposit(
     deal_id: str,
-    confirmations: int = 3,
+    body: VerifyDepositRequest,
     db: AsyncIOMotorDatabase = Depends(get_db),
-    _: None = Depends(verify_admin_key)
+    _: None = Depends(verify_admin_key),
 ):
-    """Verify deposit for a deal (admin only)."""
+    """Confirm a deposit was received. Sets deal status to DEPOSITED."""
     try:
-        if await DealCRUD.confirm_deposit(db, deal_id, confirmations):
+        success = await DealCRUD.confirm_deposit(
+            db, deal_id.upper(), body.tx_hash, body.confirmations
+        )
+        if success:
             return {
                 "success": True,
-                "message": f"Deposit verified with {confirmations} confirmations"
+                "message": f"Deposit verified ({body.confirmations} confirmations)",
             }
-        else:
-            raise HTTPException(status_code=400, detail="Failed to verify deposit")
-
+        raise HTTPException(status_code=400, detail="Failed to verify deposit — check deal ID")
     except HTTPException:
         raise
     except Exception as e:
@@ -51,29 +57,53 @@ async def verify_deposit(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/resolve-dispute/{deal_id}")
-async def resolve_dispute(
+@router.post("/refund-buyer/{deal_id}")
+async def refund_buyer(
     deal_id: str,
-    winner: str = "buyer",
     db: AsyncIOMotorDatabase = Depends(get_db),
-    _: None = Depends(verify_admin_key)
+    _: None = Depends(verify_admin_key),
 ):
-    """Resolve a dispute (admin only)."""
+    """Refund funds to the buyer. Sets deal status to REFUNDED."""
     try:
-        if winner not in ["buyer", "seller"]:
-            raise HTTPException(status_code=400, detail="Winner must be 'buyer' or 'seller'")
-
-        # Resolve dispute
-        if await DealCRUD.resolve_dispute(db, deal_id, winner):
-            return {
-                "success": True,
-                "message": f"Dispute resolved - {winner} wins"
-            }
-        else:
-            raise HTTPException(status_code=400, detail="Failed to resolve dispute")
-    
+        deal = await DealCRUD.get_deal(db, deal_id.upper())
+        if not deal:
+            raise HTTPException(status_code=404, detail="Deal not found")
+        if deal.get("status") in ("COMPLETED", "REFUNDED"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Deal is already {deal.get('status')}",
+            )
+        if await DealCRUD.refund_to_buyer(db, deal_id.upper()):
+            return {"success": True, "message": "Funds refunded to buyer"}
+        raise HTTPException(status_code=400, detail="Failed to refund")
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error resolving dispute: {e}")
+        logger.error(f"Error refunding buyer: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/release-to-seller/{deal_id}")
+async def release_to_seller(
+    deal_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_db),
+    _: None = Depends(verify_admin_key),
+):
+    """Release funds to the seller. Sets deal status to COMPLETED."""
+    try:
+        deal = await DealCRUD.get_deal(db, deal_id.upper())
+        if not deal:
+            raise HTTPException(status_code=404, detail="Deal not found")
+        if deal.get("status") != "DEPOSITED":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Deal status is {deal.get('status')} — funds can only be released from DEPOSITED",
+            )
+        if await DealCRUD.release_to_seller(db, deal_id.upper()):
+            return {"success": True, "message": "Funds released to seller"}
+        raise HTTPException(status_code=400, detail="Failed to release funds")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error releasing to seller: {e}")
         raise HTTPException(status_code=500, detail=str(e))
