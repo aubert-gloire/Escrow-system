@@ -7,6 +7,39 @@ services:
     startCommand: python -m uvicorn backend.app:app --host 0.0.0.0 --port $PORT --workers 2
     healthCheckPath: /ready
     plan: starter
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_API_ID
+        sync: false
+      - key: TELEGRAM_API_HASH
+        sync: false
+      - key: TELEGRAM_SESSION_STRING
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: escrow_phase1
+      - key: ADMIN_USER_IDS
+        sync: false
+      - key: ESCROW_BTC_ADDRESS
+        sync: false
+      - key: ESCROW_USDT_ADDRESS
+        sync: false
+      - key: ESCROW_ETH_ADDRESS
+        sync: false
+      - key: ESCROW_LTC_ADDRESS
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: SUPPORTED_CURRENCIES
+        value: '["BTC","USDT","ETH","LTC"]'
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: HEARTBEAT_INTERVAL_SECONDS
+        value: "300"
 
   - type: worker
     name: escrow-bot
@@ -15,37 +48,36 @@ services:
     buildCommand: pip install --no-cache-dir -r requirements.txt
     startCommand: python -u bot/main.py
     plan: starter
-
-envVars:
-  - key: TELEGRAM_BOT_TOKEN
-    sync: false
-  - key: TELEGRAM_API_ID
-    sync: false
-  - key: TELEGRAM_API_HASH
-    sync: false
-  - key: TELEGRAM_SESSION_STRING
-    sync: false
-  - key: MONGO_URI
-    sync: false
-  - key: MONGO_DB_NAME
-    value: escrow_phase1
-  - key: ADMIN_USER_IDS
-    sync: false
-  - key: ESCROW_BTC_ADDRESS
-    sync: false
-  - key: ESCROW_USDT_ADDRESS
-    sync: false
-  - key: ESCROW_ETH_ADDRESS
-    sync: false
-  - key: ESCROW_LTC_ADDRESS
-    sync: false
-  - key: SECRET_KEY
-    sync: false
-  - key: SUPPORTED_CURRENCIES
-    value: '["BTC","USDT","ETH","LTC"]'
-  - key: PYTHONUNBUFFERED
-    value: "1"
-  - key: LOG_LEVEL
-    value: INFO
-  - key: HEARTBEAT_INTERVAL_SECONDS
-    value: "300"
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_API_ID
+        sync: false
+      - key: TELEGRAM_API_HASH
+        sync: false
+      - key: TELEGRAM_SESSION_STRING
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: escrow_phase1
+      - key: ADMIN_USER_IDS
+        sync: false
+      - key: ESCROW_BTC_ADDRESS
+        sync: false
+      - key: ESCROW_USDT_ADDRESS
+        sync: false
+      - key: ESCROW_ETH_ADDRESS
+        sync: false
+      - key: ESCROW_LTC_ADDRESS
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: SUPPORTED_CURRENCIES
+        value: '["BTC","USDT","ETH","LTC"]'
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: HEARTBEAT_INTERVAL_SECONDS
+        value: "300"
