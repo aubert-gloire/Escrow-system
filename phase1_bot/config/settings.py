@@ -3,9 +3,11 @@ Phase 1 Configuration Settings
 Load all configuration from environment variables
 """
 
-from pydantic_settings import BaseSettings
-from typing import List
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
+from typing import Any
 from pathlib import Path
+import json
 
 
 class Settings(BaseSettings):
@@ -22,7 +24,7 @@ class Settings(BaseSettings):
     mongo_db_name: str = "escrow_phase1"
     
     # Admin Configuration
-    admin_user_ids: List[int] = []
+    admin_user_ids: Any = []
     
     # Escrow Addresses (YOUR ADDRESSES)
     escrow_btc_address: str = ""
@@ -48,23 +50,69 @@ class Settings(BaseSettings):
     deal_expiry_hours: int = 24
     
     # Currency Configuration
-    supported_currencies: List[str] = ["BTC", "USDT", "ETH", "LTC"]
+    supported_currencies: Any = ["BTC", "USDT", "ETH", "LTC"]
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    @field_validator("admin_user_ids", mode="before")
+    @classmethod
+    def parse_admin_user_ids(cls, value):
+        """Allow ADMIN_USER_IDS as JSON list or comma-separated values."""
+        if value is None or value == "":
+            return []
+
+        if isinstance(value, list):
+            return [int(v) for v in value]
+
+        if isinstance(value, str):
+            raw = value.strip()
+
+            if not raw:
+                return []
+
+            if raw.startswith("[") and raw.endswith("]"):
+                parsed = json.loads(raw)
+                return [int(v) for v in parsed]
+
+            return [
+                int(uid.strip())
+                for uid in raw.split(",")
+                if uid.strip().isdigit()
+            ]
+
+        return value
+
+    @field_validator("supported_currencies", mode="before")
+    @classmethod
+    def parse_supported_currencies(cls, value):
+        """Allow SUPPORTED_CURRENCIES as JSON list or comma-separated values."""
+        if value is None or value == "":
+            return ["BTC", "USDT", "ETH", "LTC"]
+
+        if isinstance(value, list):
+            return [str(v).strip().upper() for v in value if str(v).strip()]
+
+        if isinstance(value, str):
+            raw = value.strip()
+
+            if not raw:
+                return ["BTC", "USDT", "ETH", "LTC"]
+
+            if raw.startswith("[") and raw.endswith("]"):
+                parsed = json.loads(raw)
+                return [str(v).strip().upper() for v in parsed if str(v).strip()]
+
+            return [cur.strip().upper() for cur in raw.split(",") if cur.strip()]
+
+        return value
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
-        # Parse admin user IDs from comma-separated string if needed
-        if isinstance(self.admin_user_ids, str):
-            self.admin_user_ids = [
-                int(uid.strip()) for uid in self.admin_user_ids.split(",")
-                if uid.strip().isdigit()
-            ]
 
 
 # Global settings instance

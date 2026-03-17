@@ -50,6 +50,7 @@ phase1_bot/
 ## Quick Start (Local Development)
 
 ### 1. Setup MongoDB Atlas
+
 ```bash
 # Create free account at mongodb.com/cloud/atlas
 # Create M0 cluster and get connection string
@@ -57,12 +58,14 @@ phase1_bot/
 ```
 
 ### 2. Clone and Install
+
 ```bash
 cd phase1_bot
 pip install -r requirements.txt
 ```
 
 ### 3. Configure Environment
+
 ```bash
 cp .env.example .env
 
@@ -74,6 +77,7 @@ cp .env.example .env
 ```
 
 ### 4. Run Locally
+
 ```bash
 # In terminal 1: Run bot
 python bot/main.py
@@ -85,6 +89,7 @@ python -m uvicorn backend.app:app --reload
 ## Deployment on Render
 
 ### 1. Prepare Repository
+
 ```bash
 git init
 git add .
@@ -93,6 +98,7 @@ git push origin main
 ```
 
 ### 2. Create Render Services
+
 - Go to [render.com](https://render.com)
 - Create new Web Service (escrow-api)
 - Create new Background Worker (escrow-bot)
@@ -100,6 +106,7 @@ git push origin main
 - Add environment variables
 
 ### 3. Environment Variables on Render
+
 ```
 TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_API_ID=your_api_id
@@ -120,10 +127,12 @@ HEARTBEAT_INTERVAL_SECONDS=300
 ```
 
 ### 4. Deploy
+
 - Push to GitHub
 - Render auto-deploys both services
 
 ### 5. Keep It 24/7 On Render
+
 - Use `Starter` (or higher) plan for both web and worker services.
 - Free services can sleep or be resource-constrained, which causes cold starts and lag.
 - Keep web health check on `/ready` and monitor restart events in Render logs.
@@ -132,6 +141,7 @@ HEARTBEAT_INTERVAL_SECONDS=300
 ## Bot Commands
 
 ### User Commands
+
 - `/start` - Start bot and show menu
 - `/seller` - Register as seller (asks for preferred currency and address)
 - `/buyer` - Register as buyer
@@ -140,12 +150,14 @@ HEARTBEAT_INTERVAL_SECONDS=300
 - `/help` - Show help message
 
 ### Deal Commands
+
 - `/confirm_deposit {tx_hash}` - Submit transaction hash as buyer
 - `/delivered` - Mark deal as delivered (seller)
 - `/complete_deal` - Confirm receipt and complete deal (buyer)
 - `/dispute` - Raise dispute if issues (buyer)
 
 ### Admin Commands
+
 - `/admin` - Show admin panel (admin only)
 - `/verify_deposit {deal_id} {confirmations}` - Verify deposit
 - `/resolve_dispute {deal_id} {winner}` - Resolve dispute
@@ -153,6 +165,7 @@ HEARTBEAT_INTERVAL_SECONDS=300
 ## Workflow
 
 ### 1. Role Selection
+
 ```
 User starts bot
 ↓
@@ -163,6 +176,7 @@ Buyer: Ready to create deals
 ```
 
 ### 2. Deal Creation
+
 ```
 /escrow
 ↓
@@ -176,6 +190,7 @@ Bot displays escrow address
 ```
 
 ### 3. Payment (Manual Phase 1)
+
 ```
 Bot: "Send X to escrow address"
 ↓
@@ -189,6 +204,7 @@ Status updates to DEPOSITED
 ```
 
 ### 4. Delivery & Completion
+
 ```
 Seller: /delivered (when goods delivered)
 ↓
@@ -200,6 +216,7 @@ Deal completed, reputation updated
 ```
 
 ### 5. Dispute (If needed)
+
 ```
 Buyer: /dispute (if issues)
 ↓
@@ -211,6 +228,7 @@ Funds distributed based on decision
 ## Database Schema (MongoDB)
 
 ### Users Collection
+
 ```javascript
 {
   _id: 123456789,           // Telegram user ID
@@ -231,6 +249,7 @@ Funds distributed based on decision
 ```
 
 ### Deals Collection
+
 ```javascript
 {
   deal_id: "DEAL_ABC123",
@@ -251,11 +270,13 @@ Funds distributed based on decision
 ## API Endpoints
 
 ### Deals
+
 - `POST /api/deals/create` - Create deal
 - `GET /api/deals/{deal_id}` - Get deal details
 - `GET /api/deals/user/{user_id}` - Get user's deals
 
 ### Admin
+
 - `POST /api/admin/verify-deposit/{deal_id}` - Verify deposit
 - `POST /api/admin/resolve-dispute/{deal_id}` - Resolve dispute
 
@@ -296,12 +317,14 @@ curl http://localhost:8000/health
 ## Security Considerations
 
 ⚠️ **Phase 1 Limitations**:
+
 - Manual deposit verification (prone to errors)
 - No blockchain integration (can't auto-verify)
 - Admin dependency (centralized)
 - Limited escrow security
 
 ✅ **Phase 1 Protections**:
+
 - Crypto address validation
 - Transaction hash recording
 - Audit trail in MongoDB
@@ -311,6 +334,7 @@ curl http://localhost:8000/health
 ## Support
 
 For issues or questions:
+
 1. Check `/help` in bot
 2. Contact admin: @your_username
 3. Reference deal ID when reporting issues
