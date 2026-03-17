@@ -8,6 +8,8 @@ services:
     healthCheckPath: /ready
     plan: starter
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_API_ID
@@ -49,6 +51,8 @@ services:
     startCommand: python -u bot/main.py
     plan: starter
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_API_ID
