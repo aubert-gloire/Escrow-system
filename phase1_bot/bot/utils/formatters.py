@@ -43,8 +43,7 @@ TERMS_TEXT = (
     "_[Placeholder — update with your full terms.]_"
 )
 
-# TODO: Set your official verification channel username / link here.
-VERIFICATION_CHANNEL = "https://t.me/your_verification_channel"
+VERIFICATION_CHANNEL = "https://t.me/tradesafescrow"
 
 
 # ── Fee schedule ───────────────────────────────────────────────────────────────
@@ -76,7 +75,8 @@ def format_welcome_dm(stats: Dict[str, int]) -> str:
         "• Every deal gets its own private group with a full audit trail\n"
         "• Buyer controls the release — seller only gets paid on confirmation\n"
         "• Disputes reviewed and resolved by our admin team within 24 h\n"
-        "• No account, no KYC — just a wallet address\n\n"
+        "• No account, no KYC — just a wallet address\n"
+        f"• Verify every escrow address on our official channel: {VERIFICATION_CHANNEL}\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         f"📊 *Track record:*\n"
         f"  ✅ Deals completed: *{stats.get('completed', 0) + STATS_BASE_COMPLETED:,}*\n"
