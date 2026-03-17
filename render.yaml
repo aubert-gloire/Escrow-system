@@ -8,7 +8,7 @@ services:
     healthCheckPath: /ready
     plan: starter
 
-  - type: background_worker
+  - type: worker
     name: escrow-bot
     env: python
     rootDir: phase1_bot
