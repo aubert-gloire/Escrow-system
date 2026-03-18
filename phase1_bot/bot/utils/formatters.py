@@ -39,7 +39,7 @@ TERMS_TEXT = (
     "• Funds sent to the escrow address are held until the deal is resolved.\n"
     "• `/pay_seller` is irreversible — use it only when you are satisfied.\n"
     "• Disputes are reviewed by a human arbitrator within 24 hours.\n"
-    "• The service fee is 5% for deals over $100, or a flat $5 for deals under $100.\n\n"
+    "• The service fee is 3% for deals over $100, or a flat $3 for deals under $100.\n\n"
     "_[Placeholder — update with your full terms.]_"
 )
 
@@ -48,7 +48,7 @@ VERIFICATION_CHANNEL = "https://t.me/tradesafescrow"
 
 # ── Fee schedule ───────────────────────────────────────────────────────────────
 
-FEE_SCHEDULE = "5% for deals over $100  •  Flat $5 for deals $100 and under"
+FEE_SCHEDULE = "3% for deals over $100  •  Flat $3 for deals $100 and under"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
