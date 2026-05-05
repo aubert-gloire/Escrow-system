@@ -6,7 +6,11 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from database.models import UserModel, DealModel
 from typing import Optional, List, Dict, Any
 from loguru import logger
-from datetime import datetime
+from datetime import datetime, timezone
+
+
+def _now():
+    return datetime.now(timezone.utc)
 
 
 class UserCRUD:
@@ -115,7 +119,7 @@ class DealCRUD:
                         "seller_username": seller_username,
                         "seller_address": seller_address,
                         "currency": currency,
-                        "updated_at": datetime.utcnow(),
+                        "updated_at": _now(),
                     }
                 },
             )
@@ -144,7 +148,7 @@ class DealCRUD:
                         "buyer_address": buyer_address,
                         "escrow_address": escrow_address,
                         "status": "AWAITING_DEPOSIT",
-                        "updated_at": datetime.utcnow(),
+                        "updated_at": _now(),
                     }
                 },
             )
@@ -170,7 +174,7 @@ class DealCRUD:
                         "currency": None,
                         "escrow_address": None,
                         "status": "SETUP",
-                        "updated_at": datetime.utcnow(),
+                        "updated_at": _now(),
                     }
                 },
             )
@@ -180,26 +184,51 @@ class DealCRUD:
             return False
 
     @staticmethod
+    async def claim_payment(
+        db: AsyncIOMotorDatabase,
+        deal_id: str,
+        tx_hash: str,
+    ) -> bool:
+        """Buyer records a payment claim — stores TX hash for admin to verify."""
+        try:
+            result = await db.deals.update_one(
+                {"deal_id": deal_id, "status": "AWAITING_DEPOSIT"},
+                {
+                    "$set": {
+                        "payment_tx_claimed": tx_hash,
+                        "payment_claimed_at": _now(),
+                        "updated_at": _now(),
+                    }
+                },
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            logger.error(f"Error claiming payment: {e}")
+            return False
+
+    @staticmethod
     async def confirm_deposit(
         db: AsyncIOMotorDatabase,
         deal_id: str,
         tx_hash: str,
         confirmations: int,
+        verified_amount: Optional[float] = None,
     ) -> bool:
         """Admin confirms the deposit was received on-chain."""
         try:
+            fields = {
+                "deposit_tx_hash": tx_hash,
+                "deposit_confirmed": True,
+                "deposit_confirmations": confirmations,
+                "deposit_confirmed_at": _now(),
+                "status": "DEPOSITED",
+                "updated_at": _now(),
+            }
+            if verified_amount is not None:
+                fields["verified_amount"] = verified_amount
             result = await db.deals.update_one(
-                {"deal_id": deal_id},
-                {
-                    "$set": {
-                        "deposit_tx_hash": tx_hash,
-                        "deposit_confirmed": True,
-                        "deposit_confirmations": confirmations,
-                        "deposit_confirmed_at": datetime.utcnow(),
-                        "status": "DEPOSITED",
-                        "updated_at": datetime.utcnow(),
-                    }
-                },
+                {"deal_id": deal_id, "status": "AWAITING_DEPOSIT"},
+                {"$set": fields},
             )
             return result.modified_count > 0
         except Exception as e:
@@ -215,8 +244,8 @@ class DealCRUD:
                 {
                     "$set": {
                         "status": "COMPLETED",
-                        "released_at": datetime.utcnow(),
-                        "updated_at": datetime.utcnow(),
+                        "released_at": _now(),
+                        "updated_at": _now(),
                     }
                 },
             )
@@ -234,8 +263,8 @@ class DealCRUD:
                 {
                     "$set": {
                         "status": "REFUNDED",
-                        "refunded_at": datetime.utcnow(),
-                        "updated_at": datetime.utcnow(),
+                        "refunded_at": _now(),
+                        "updated_at": _now(),
                     }
                 },
             )
@@ -258,7 +287,7 @@ class DealCRUD:
                     "$set": {
                         "status": "DISPUTED",
                         "dispute_initiated_by": initiated_by,
-                        "updated_at": datetime.utcnow(),
+                        "updated_at": _now(),
                     }
                 },
             )
@@ -273,7 +302,7 @@ class DealCRUD:
         try:
             result = await db.deals.update_one(
                 {"deal_id": deal_id},
-                {"$set": {"status": status, "updated_at": datetime.utcnow()}},
+                {"$set": {"status": status, "updated_at": _now()}},
             )
             return result.modified_count > 0
         except Exception as e:

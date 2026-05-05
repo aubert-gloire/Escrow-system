@@ -12,7 +12,11 @@ from loguru import logger
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from bot.keyboards import GroupActionKeyboard
-from bot.utils.formatters import format_balance_status
+from bot.utils.formatters import (
+    format_balance_status,
+    format_payment_claimed_group,
+    format_payment_claimed_admin,
+)
 from config.settings import settings
 from database.crud import DealCRUD
 
@@ -95,6 +99,70 @@ async def cmd_balance(message: Message, db: AsyncIOMotorDatabase):
         return
 
     await message.reply(format_balance_status(deal), parse_mode="Markdown")
+
+
+# ── /paid ─────────────────────────────────────────────────────────────────────
+
+@router.message(Command("paid"))
+async def cmd_paid(message: Message, db: AsyncIOMotorDatabase, bot: Bot):
+    """Buyer declares they have sent funds and provides the TX hash."""
+    if not _is_group(message):
+        await message.reply("ℹ️ The `/paid` command can only be used inside the escrow group.")
+        return
+
+    deal = await _get_group_deal(db, message)
+    if not deal:
+        return
+
+    if message.from_user.id != deal.get("buyer_id"):
+        await message.reply(
+            "❌ Only the *buyer* can declare a payment with `/paid`.",
+            parse_mode="Markdown",
+        )
+        return
+
+    status = deal.get("status")
+    if status == "DEPOSITED":
+        await message.reply("✅ Deposit already confirmed by admin. No action needed.")
+        return
+    if status != "AWAITING_DEPOSIT":
+        await message.reply(
+            f"❌ Cannot declare payment — deal status is *{status}*.",
+            parse_mode="Markdown",
+        )
+        return
+
+    args = message.text.split()
+    if len(args) < 2:
+        await message.reply(
+            "Please include your TX hash:\n`/paid <TX_HASH>`\n\n"
+            "Example: `/paid a1b2c3d4e5f6...`",
+            parse_mode="Markdown",
+        )
+        return
+
+    tx_hash = args[1].strip()
+    success = await DealCRUD.claim_payment(db, deal["deal_id"], tx_hash)
+    if not success:
+        await message.reply("❌ Could not record your payment. Please try again.")
+        return
+
+    deal = await DealCRUD.get_deal(db, deal["deal_id"])
+    await message.answer(format_payment_claimed_group(deal), parse_mode="Markdown")
+
+    for admin_id in settings.admin_user_ids:
+        try:
+            await bot.send_message(
+                admin_id,
+                format_payment_claimed_admin(deal),
+                parse_mode="Markdown",
+            )
+        except Exception:
+            pass
+
+    logger.info(
+        f"Payment claimed — deal {deal['deal_id']}, buyer {message.from_user.id}, TX: {tx_hash}"
+    )
 
 
 # ── /pay_seller ───────────────────────────────────────────────────────────────

@@ -143,9 +143,10 @@ def format_transaction_summary(deal: Dict[str, Any]) -> str:
         "_Tap to copy_\n\n"
         f"⚠️ Before sending, verify this address in our official channel:\n"
         f"{VERIFICATION_CHANNEL}\n\n"
-        "Type `/qr` to get a QR code of the deposit address.\n"
-        "After sending, the admin will verify the deposit.\n"
-        "Type `/balance` to check the status."
+        "Type `/qr` to get a QR code of the deposit address.\n\n"
+        "📌 *After sending funds:*\n"
+        "Type `/paid <TX_HASH>` in this group to notify the admin.\n"
+        "Type `/balance` to check the deposit status."
     )
 
 
@@ -153,10 +154,19 @@ def format_balance_status(deal: Dict[str, Any]) -> str:
     """Response to /balance — shows current deposit state."""
     status = deal.get("status")
     if status == "AWAITING_DEPOSIT":
+        claimed_tx = deal.get("payment_tx_claimed")
+        if claimed_tx:
+            claimed_at = _ts(deal.get("payment_claimed_at"))
+            return (
+                "⏳ *Balance Status — Payment Claimed*\n\n"
+                f"Buyer submitted TX: `{claimed_tx}`\n"
+                f"Claimed at: {claimed_at}\n\n"
+                "Waiting for admin to verify the transaction on-chain."
+            )
         return (
             "⏳ *Balance Status*\n\n"
-            "No confirmed deposit yet.\n"
-            "Waiting for admin verification after funds are sent."
+            "No deposit recorded yet.\n"
+            "After sending funds, the buyer should type `/paid <TX_HASH>` to notify the admin."
         )
     if status == "DEPOSITED":
         confirmations = deal.get("deposit_confirmations", 0)
@@ -185,6 +195,49 @@ def format_balance_status(deal: Dict[str, Any]) -> str:
             "Please keep the group active."
         )
     return f"ℹ️ Deal status: *{status}*"
+
+
+def _explorer_link(currency: str, tx_hash: str) -> str:
+    """Return a blockchain explorer URL for manual verification."""
+    explorers = {
+        "BTC": f"https://blockchair.com/bitcoin/transaction/{tx_hash}",
+        "ETH": f"https://etherscan.io/tx/{tx_hash}",
+        "LTC": f"https://blockchair.com/litecoin/transaction/{tx_hash}",
+        "USDT": f"https://tronscan.org/#/transaction/{tx_hash}",
+    }
+    return explorers.get(currency, tx_hash)
+
+
+def format_payment_claimed_group(deal: Dict[str, Any]) -> str:
+    """Posted in the group after buyer runs /paid <TX_HASH>."""
+    return (
+        "📤 *Payment Claimed*\n\n"
+        f"Buyer @{deal.get('buyer_username')} has submitted a deposit transaction.\n\n"
+        f"💱 Currency: *{deal.get('currency')}*\n"
+        f"📬 Escrow Address: `{deal.get('escrow_address')}`\n"
+        f"🔗 TX Hash: `{deal.get('payment_tx_claimed', 'N/A')}`\n\n"
+        "An admin will verify the transaction on-chain and confirm it here.\n"
+        "Type `/balance` to check the status at any time."
+    )
+
+
+def format_payment_claimed_admin(deal: Dict[str, Any]) -> str:
+    """Sent to each admin when buyer claims payment via /paid."""
+    currency = deal.get("currency", "")
+    tx_hash = deal.get("payment_tx_claimed", "")
+    explorer = _explorer_link(currency, tx_hash)
+    return (
+        "🔔 *Payment Claim — Action Required*\n\n"
+        f"Deal: `{deal['deal_id']}`\n"
+        f"Buyer: @{deal.get('buyer_username')}\n"
+        f"Seller: @{deal.get('seller_username')}\n"
+        f"Currency: *{currency}*\n\n"
+        f"📬 Escrow Address:\n`{deal.get('escrow_address')}`\n\n"
+        f"🔗 TX Hash (claimed by buyer):\n`{tx_hash}`\n\n"
+        f"🔍 Verify on-chain: {explorer}\n\n"
+        "Once confirmed, run in DM or the group:\n"
+        f"`/verify_deposit {deal['deal_id']} {tx_hash}`"
+    )
 
 
 def format_deposit_verified(deal: Dict[str, Any]) -> str:

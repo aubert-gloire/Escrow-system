@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     escrow_eth_address: str = ""
     escrow_ltc_address: str = ""
     
+    # Blockchain verification API keys (optional but recommended)
+    etherscan_api_key: str = ""      # Required for ETH on-chain verification
+    blockcypher_token: str = ""      # Optional — raises BlockCypher rate limit for LTC
+
     # Server Configuration
     render_api_url: str = "http://localhost:8000"
     webhook_url: str = "http://localhost:8000/webhook"
