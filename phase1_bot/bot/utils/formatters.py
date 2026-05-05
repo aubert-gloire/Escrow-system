@@ -7,8 +7,8 @@ from typing import Dict, Any
 
 
 # ── Stats base offsets (added to real DB counts for display) ──────────────────
-STATS_BASE_COMPLETED = 1_247
-STATS_BASE_DISPUTES  = 94
+STATS_BASE_COMPLETED = 3_147
+STATS_BASE_DISPUTES  = 128
 
 # ── Static info placeholders ───────────────────────────────────────────────────
 # TODO: Replace these with your real content before going live.
