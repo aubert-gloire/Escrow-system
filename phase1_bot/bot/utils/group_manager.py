@@ -100,6 +100,7 @@ class GroupManager:
             # 6. Delete all service messages so group history is clean for clients
             messages = await user_client.get_messages(group, limit=50)
             msg_ids = [m.id for m in messages if m.id]
+            max_msg_id = max(msg_ids) if msg_ids else 0
             if msg_ids:
                 await user_client.delete_messages(group, msg_ids)
                 logger.info(f"Deleted {len(msg_ids)} service messages from group {group_chat_id}")
@@ -107,6 +108,13 @@ class GroupManager:
             # 7. Leave the group so only the bot remains
             await user_client(LeaveChannelRequest(channel=group))
             logger.info(f"User account left group {group_chat_id} — bot is sole member")
+
+            # 8. Bot deletes the "User left" service message (ID = max_msg_id + 1)
+            for msg_id in range(max_msg_id + 1, max_msg_id + 4):
+                try:
+                    await bot.delete_message(chat_id=group_chat_id, message_id=msg_id)
+                except Exception:
+                    pass
 
             return {
                 "group_id": group_chat_id,
@@ -174,6 +182,7 @@ class GroupManager:
             # Delete all service messages so group history is clean for clients
             messages = await user_client.get_messages(group, limit=50)
             msg_ids = [m.id for m in messages if m.id]
+            max_msg_id = max(msg_ids) if msg_ids else 0
             if msg_ids:
                 await user_client.delete_messages(group, msg_ids)
                 logger.info(f"Deleted {len(msg_ids)} service messages from group {group_chat_id}")
@@ -181,6 +190,13 @@ class GroupManager:
             # Leave the group so only the bot remains
             await user_client(LeaveChannelRequest(channel=group))
             logger.info(f"User account left group {group_chat_id} — bot is sole member")
+
+            # Bot deletes the "User left" service message (ID = max_msg_id + 1)
+            for msg_id in range(max_msg_id + 1, max_msg_id + 4):
+                try:
+                    await bot.delete_message(chat_id=group_chat_id, message_id=msg_id)
+                except Exception:
+                    pass
 
             return {"group_id": group_chat_id, "group_link": invite_link, "success": True}
 
