@@ -97,7 +97,14 @@ class GroupManager:
             invite = await user_client(ExportChatInviteRequest(peer=group))
             invite_link = invite.link
 
-            # 6. Leave the group so only the bot remains
+            # 6. Delete all service messages so group history is clean for clients
+            messages = await user_client.get_messages(group, limit=50)
+            msg_ids = [m.id for m in messages if m.id]
+            if msg_ids:
+                await user_client.delete_messages(group, msg_ids)
+                logger.info(f"Deleted {len(msg_ids)} service messages from group {group_chat_id}")
+
+            # 7. Leave the group so only the bot remains
             await user_client(LeaveChannelRequest(channel=group))
             logger.info(f"User account left group {group_chat_id} — bot is sole member")
 
@@ -163,6 +170,13 @@ class GroupManager:
 
             invite = await user_client(ExportChatInviteRequest(peer=group))
             invite_link = invite.link
+
+            # Delete all service messages so group history is clean for clients
+            messages = await user_client.get_messages(group, limit=50)
+            msg_ids = [m.id for m in messages if m.id]
+            if msg_ids:
+                await user_client.delete_messages(group, msg_ids)
+                logger.info(f"Deleted {len(msg_ids)} service messages from group {group_chat_id}")
 
             # Leave the group so only the bot remains
             await user_client(LeaveChannelRequest(channel=group))
