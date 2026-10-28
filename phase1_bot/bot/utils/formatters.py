@@ -61,6 +61,19 @@ def _ts(dt) -> str:
     return dt.strftime("%Y-%m-%d %H:%M UTC")
 
 
+_MD_SPECIAL_CHARS = ("\\", "_", "*", "`", "[")
+
+
+def escape_markdown(text) -> str:
+    """Escape legacy-Markdown special characters (notably '_', common in
+    Telegram usernames) so a single unmatched char can't break parse_mode="Markdown".
+    """
+    text = str(text) if text is not None else ""
+    for ch in _MD_SPECIAL_CHARS:
+        text = text.replace(ch, f"\\{ch}")
+    return text
+
+
 # ── Public formatters ──────────────────────────────────────────────────────────
 
 def format_welcome_dm(stats: Dict[str, int]) -> str:
@@ -116,7 +129,7 @@ def format_role_declaration(
     return (
         f"{role_emoji} *Escrow Role Declaration — {role_label}*\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"👤 Username: @{username}\n"
+        f"👤 Username: @{escape_markdown(username)}\n"
         f"🆔 Telegram ID: `{user_id}`\n"
         f"📬 Wallet Address: `{address}`\n"
         f"💱 Detected Currency: *{currency}*\n"
@@ -131,10 +144,10 @@ def format_transaction_summary(deal: Dict[str, Any]) -> str:
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         f"🆔 Transaction ID: `{deal['deal_id']}`\n\n"
         f"🛡️ *Seller*\n"
-        f"  Username: @{deal.get('seller_username')}\n"
+        f"  Username: @{escape_markdown(deal.get('seller_username'))}\n"
         f"  Wallet: `{deal.get('seller_address')}`\n\n"
         f"🛒 *Buyer*\n"
-        f"  Username: @{deal.get('buyer_username')}\n"
+        f"  Username: @{escape_markdown(deal.get('buyer_username'))}\n"
         f"  Wallet: `{deal.get('buyer_address')}`\n\n"
         f"💱 Currency: *{deal.get('currency')}*\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -161,12 +174,13 @@ def format_balance_status(deal: Dict[str, Any]) -> str:
                 "⏳ *Balance Status — Payment Claimed*\n\n"
                 f"Buyer submitted TX: `{claimed_tx}`\n"
                 f"Claimed at: {claimed_at}\n\n"
-                "Waiting for admin to verify the transaction on-chain."
+                "Automatically verifying on-chain — this confirms itself once there "
+                "are enough confirmations, no admin action needed."
             )
         return (
             "⏳ *Balance Status*\n\n"
             "No deposit recorded yet.\n"
-            "After sending funds, the buyer should type `/paid <TX_HASH>` to notify the admin."
+            "After sending funds, the buyer should type `/paid <TX_HASH>` to start automatic verification."
         )
     if status == "DEPOSITED":
         confirmations = deal.get("deposit_confirmations", 0)
@@ -212,25 +226,27 @@ def format_payment_claimed_group(deal: Dict[str, Any]) -> str:
     """Posted in the group after buyer runs /paid <TX_HASH>."""
     return (
         "📤 *Payment Claimed*\n\n"
-        f"Buyer @{deal.get('buyer_username')} has submitted a deposit transaction.\n\n"
+        f"Buyer @{escape_markdown(deal.get('buyer_username'))} has submitted a deposit transaction.\n\n"
         f"💱 Currency: *{deal.get('currency')}*\n"
         f"📬 Escrow Address: `{deal.get('escrow_address')}`\n"
         f"🔗 TX Hash: `{deal.get('payment_tx_claimed', 'N/A')}`\n\n"
-        "An admin will verify the transaction on-chain and confirm it here.\n"
+        "I'm automatically monitoring this transaction on-chain and will confirm it "
+        "here once it has enough confirmations.\n"
         "Type `/balance` to check the status at any time."
     )
 
 
 def format_payment_claimed_admin(deal: Dict[str, Any]) -> str:
-    """Sent to each admin when buyer claims payment via /paid."""
+    """Sent to admins when automatic on-chain verification fails and falls back
+    to manual review (buyer already ran /paid — this is not the common path)."""
     currency = deal.get("currency", "")
     tx_hash = deal.get("payment_tx_claimed", "")
     explorer = _explorer_link(currency, tx_hash)
     return (
-        "🔔 *Payment Claim — Action Required*\n\n"
+        "🔔 *Automatic Verification Failed — Manual Review Needed*\n\n"
         f"Deal: `{deal['deal_id']}`\n"
-        f"Buyer: @{deal.get('buyer_username')}\n"
-        f"Seller: @{deal.get('seller_username')}\n"
+        f"Buyer: @{escape_markdown(deal.get('buyer_username'))}\n"
+        f"Seller: @{escape_markdown(deal.get('seller_username'))}\n"
         f"Currency: *{currency}*\n\n"
         f"📬 Escrow Address:\n`{deal.get('escrow_address')}`\n\n"
         f"🔗 TX Hash (claimed by buyer):\n`{tx_hash}`\n\n"
