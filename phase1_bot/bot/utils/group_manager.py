@@ -12,9 +12,11 @@ from telethon.tl.functions.channels import (
     CreateChannelRequest,
     InviteToChannelRequest,
     EditAdminRequest,
+    LeaveChannelRequest,
 )
 from telethon.tl.functions.messages import ExportChatInviteRequest
 from telethon.tl.types import ChatAdminRights
+from bot.utils.formatters import escape_markdown
 from config.settings import settings
 from loguru import logger
 from typing import Optional, Dict, Any
@@ -95,6 +97,10 @@ class GroupManager:
             invite = await user_client(ExportChatInviteRequest(peer=group))
             invite_link = invite.link
 
+            # 6. Leave the group so only the bot remains
+            await user_client(LeaveChannelRequest(channel=group))
+            logger.info(f"User account left group {group_chat_id} — bot is sole member")
+
             return {
                 "group_id": group_chat_id,
                 "group_link": invite_link,
@@ -158,6 +164,10 @@ class GroupManager:
             invite = await user_client(ExportChatInviteRequest(peer=group))
             invite_link = invite.link
 
+            # Leave the group so only the bot remains
+            await user_client(LeaveChannelRequest(channel=group))
+            logger.info(f"User account left group {group_chat_id} — bot is sole member")
+
             return {"group_id": group_chat_id, "group_link": invite_link, "success": True}
 
         except Exception as e:
@@ -176,8 +186,8 @@ class GroupManager:
                 f"*🔒 ESCROW DEAL #{deal.get('deal_id')}*\n\n"
                 f"*Amount:* {deal.get('amount')} {deal.get('currency')}\n"
                 f"*Description:* {deal.get('description')}\n\n"
-                f"*Buyer:* @{deal.get('buyer_username')}\n"
-                f"*Seller:* @{deal.get('seller_username', 'Waiting...')}\n\n"
+                f"*Buyer:* @{escape_markdown(deal.get('buyer_username'))}\n"
+                f"*Seller:* @{escape_markdown(deal.get('seller_username', 'Waiting...'))}\n\n"
                 f"*Status:* {deal.get('status')}\n\n"
                 f"*Escrow Address:*\n"
                 f"```\n{deal.get('escrow_address')}\n```\n"
